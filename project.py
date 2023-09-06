@@ -12,8 +12,8 @@ def main():
     with open("wordlAI_data.csv", "w", newline='') as file:
         writer = csv.DictWriter(file, fieldnames = ["won/lose", "secret_word", "guess1", "guess2", "guess3", "guess4", "guess5", "guess6"])
         writer.writerow({"won/lose": 'won_lose', "secret_word": 'secret_word', "guess1": 'guess1', "guess2": 'guess2', "guess3": 'guess3', "guess4": 'guess4', "guess5": 'guess5', "guess6": 'guess6'})
-    sample = int(input("sample: "))
     
+    sample = int(input("sample: "))
     inicio = time.time()
     gamesWon = 0
 

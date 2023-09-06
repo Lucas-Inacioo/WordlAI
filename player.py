@@ -42,17 +42,18 @@ class Player():
         self.analyze_feedback(wordle_match, allInputs)
 
         if (wordle_match.getTries() < 3):
-            most_yellows_filtered = self.filter_most_yellows(possible_guesses)
-            most_yellows_filtered = self.filter_red(most_yellows_filtered)
+            most_yellows_filtered = self.filter_red(possible_guesses)
+            most_yellows_filtered = self.filter_most_yellows(most_yellows_filtered)
             if len(most_yellows_filtered) > 0:
                 possible_guesses = most_yellows_filtered
             else:
                 possible_guesses = self.filter_green(possible_guesses)
+                possible_guesses = self.filter_red(possible_guesses)
                 possible_guesses = self.filter_yellow(possible_guesses)
         else:
             possible_guesses = self.filter_green(possible_guesses)
-            possible_guesses = self.filter_yellow(possible_guesses)
             possible_guesses = self.filter_red(possible_guesses)
+            possible_guesses = self.filter_yellow(possible_guesses)
             
         possible_guesses = self.filter_best(possible_guesses)
         best_guess = random.choice(possible_guesses)     
