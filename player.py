@@ -11,6 +11,7 @@ class Player():
         self._allInputs = []
         self._wordList = wordList
         self._result = 0
+        self._totalTries = 6
         self._wordle_match = wordle_match
     
     def getAllInputs(self):
@@ -18,6 +19,9 @@ class Player():
     
     def getResult(self):
         return self._result
+    
+    def getTotalTries(self):
+        return self._totalTries
 
     def play(self):
         self.letter_counter(self._wordList)
@@ -28,32 +32,30 @@ class Player():
         
         if self._wordle_match.verify_end_game():
             self._result = 1
+            self._totalTries = self._wordle_match.getTries()
             return
         else:
             while self._wordle_match.getTries() < 6:
-                inputWord = self.ai(self._wordList, self._wordle_match, self._allInputs)    
+                inputWord = self.ai(self._wordList)    
                 self._allInputs.append(inputWord)
                 self._wordle_match.setFeedback(inputWord)
                 if self._wordle_match.verify_end_game():
                     self._result = 1
+                    self._totalTries = self._wordle_match.getTries()
                     return
     
-    def ai(self, possible_guesses, wordle_match, allInputs):
-        self.analyze_feedback(wordle_match, allInputs)
+    def ai(self, possible_guesses):
+        self.analyze_feedback(self._wordle_match)
 
-        if (wordle_match.getTries() < 3):
+        if (self._wordle_match.getTries() < 3):
             most_yellows_filtered = self.filter_red(possible_guesses)
             most_yellows_filtered = self.filter_most_yellows(most_yellows_filtered)
             if len(most_yellows_filtered) > 0:
                 possible_guesses = most_yellows_filtered
             else:
-                possible_guesses = self.filter_green(possible_guesses)
-                possible_guesses = self.filter_red(possible_guesses)
-                possible_guesses = self.filter_yellow(possible_guesses)
+                possible_guesses = self.filterGRY(possible_guesses)
         else:
-            possible_guesses = self.filter_green(possible_guesses)
-            possible_guesses = self.filter_red(possible_guesses)
-            possible_guesses = self.filter_yellow(possible_guesses)
+            possible_guesses = self.filterGRY(possible_guesses)
             
         possible_guesses = self.filter_best(possible_guesses)
         best_guess = random.choice(possible_guesses)     
@@ -74,20 +76,6 @@ class Player():
             if match == True:
                 filtered_guesses.append(guess)
         return filtered_guesses
-
-    def analyze_feedback(self, wordle_match, allInputs):
-        lastInput = allInputs[-1]
-        for i in range(5):
-            feedback = wordle_match.getFeedback()
-            if feedback[i] == "🟩":
-                self._correctLetter[i] = lastInput[i]
-                self._knownLettersPositions.add((lastInput[i], None))
-            elif feedback[i] == "🟨":
-                self._knownLettersPositions.add((lastInput[i], i))
-            elif feedback[i] == "🟥":
-                if lastInput[i] in self._letters:
-                    self._letters.remove(lastInput[i])
-                self._wrongLetters.add(lastInput[i])
 
     def filter_green(self, possible_guesses):
         filtered_guesses = []
@@ -137,6 +125,20 @@ class Player():
             possible_guesses = filtered_words
         return possible_guesses
 
+    def analyze_feedback(self, wordle_match):
+        lastInput = self._allInputs[-1]
+        for i in range(5):
+            feedback = wordle_match.getFeedback()
+            if feedback[i] == "🟩":
+                self._correctLetter[i] = lastInput[i]
+                self._knownLettersPositions.add((lastInput[i], None))
+            elif feedback[i] == "🟨":
+                self._knownLettersPositions.add((lastInput[i], i))
+            elif feedback[i] == "🟥":
+                if lastInput[i] in self._letters:
+                    self._letters.remove(lastInput[i])
+                self._wrongLetters.add(lastInput[i])
+
     def letter_counter(self, possible_guesses):
         word_counter = Counter()
         for word in possible_guesses:
@@ -146,3 +148,9 @@ class Player():
         sorted_letters = sorted(word_counter.items(), key=itemgetter(1), reverse=True)
         for letter in sorted_letters:
             self._letters.append(letter[0])
+            
+    def filterGRY(self, possible_guesses):
+        possible_guesses = self.filter_green(possible_guesses)
+        possible_guesses = self.filter_red(possible_guesses)
+        possible_guesses = self.filter_yellow(possible_guesses)
+        return possible_guesses
